@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+set -o xtrace
+
+if [ "$#" -ne 3 ]; then
+    echo "Usage: $0 <user_name> <host_ip> <port>"
+    exit 1
+fi
+
+user_name="$1"
+host_ip="$2"
+port="$3"
+current_folder=$(basename "$(pwd)")
+
+readonly TARGET_HOST=$user_name@$host_ip
+readonly TARGET_PATH=/home/neilyan/$current_folder/
+readonly SOURCE_PATH=./target/aarch64-unknown-linux-gnu/release/$current_folder
+
+cargo build --release --target aarch64-unknown-linux-gnu
+
+rsync -avz -e "ssh -p $port" --progress ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH}
